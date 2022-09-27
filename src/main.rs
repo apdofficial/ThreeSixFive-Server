@@ -1,5 +1,3 @@
-mod test;
-
 use actix::{Actor, ActorContext, Arbiter, AsyncContext, Context, Handler, spawn, StreamHandler, WrapFuture};
 use actix_web::{get, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder};
 use actix_web_actors::ws;
