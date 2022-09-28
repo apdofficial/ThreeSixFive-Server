@@ -1,9 +1,11 @@
+use std::borrow::Borrow;
 use actix::{Actor, ActorContext, Arbiter, AsyncContext, Context, Handler, spawn, StreamHandler, WrapFuture};
-use actix_web::{get, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{get, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder, middleware};
 use actix_web_actors::ws;
 use strum_macros::EnumString;
 use std::str;
 use std::str::FromStr;
+use std::sync::{Mutex, RwLock};
 use std::time::Duration;
 use actix_web_actors::ws::{Message, WebsocketContext};
 use strum_macros::Display;
@@ -11,22 +13,24 @@ use actix::prelude::*;
 use tokio::time::sleep;
 
 /// How often deltas are sent
-const DELTAS_INTERVAL: Duration = Duration::from_millis(100);
+const DELTAS_INTERVAL: Duration = Duration::from_millis(5000);
 
-#[derive(Debug, Display, PartialEq, EnumString)]
+#[derive(Debug, Display, PartialEq, EnumString, Default)]
 pub enum LandingPlatformState {
     StateOpen,
     StateOpening,
     StateClosed,
     StateClosing,
+    #[default]
     Unknown
 }
 
-#[derive(Debug, Display, PartialEq, EnumString)]
+#[derive(Debug, Display, PartialEq, EnumString, Default)]
 pub enum LandingPlatformCommand {
     OpenLid,
     CloseLid,
     GetLidStatus,
+    #[default]
     Unknown
 }
 
@@ -39,7 +43,23 @@ impl PixelDeltas {
     fn to_bytes(&self) -> Vec<u8> {
         [self.x.to_le_bytes(), self.y.to_le_bytes()].concat()
     }
+}
 
+#[derive(Default)]
+struct AppState {
+    landing_platform_state: LandingPlatformState,
+}
+
+impl Actor for AppState {
+    type Context = Context<Self>;
+}
+
+impl Supervised for AppState {}
+
+impl SystemService for AppState {
+    fn service_started(&mut self, ctx: &mut Context<Self>) {
+        println!("Service started");
+    }
 }
 
 /// Define HTTP actor
@@ -51,8 +71,9 @@ impl MyWebSocket {
 
     fn dispatch_deltas(&self, ctx: &mut <Self as Actor>::Context) {
         ctx.run_interval(DELTAS_INTERVAL, |act, ctx| {
-            let deltas = PixelDeltas { x: 0, y: 0 };
-            ctx.binary(deltas.to_bytes())
+            let deltas = PixelDeltas { x: 110, y: 110 }; // TODO: read the data form the sensor here
+            // ctx.binary(deltas.to_bytes())
+            ctx.text(hex::encode(deltas.to_bytes()));
         });
     }
 
@@ -159,23 +180,37 @@ fn process_incoming_command(command: LandingPlatformCommand, ctx: &mut Websocket
     }
 }
 
-async fn index(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
+async fn index(req: HttpRequest, stream: web::Payload, data: Data<AppState>) -> Result<HttpResponse, Error> {
     println!("{:?}", req);
-    let res = ws::start(MyWebSocket { landing_platform_state: LandingPlatformState::Unknown }, &req, stream);
+    let res = ws::start(MyWebSocket { landing_platform_state: LandingPlatformState::Unknown  }, &req, stream);
     println!("{:?}", res);
     res
 }
 
 #[get("/hello/{name}")]
-async fn greet(name: web::Path<String>) -> impl Responder {
+async fn greet(name: web::Path<String>, data: web::Data<AppState>) -> impl Responder {
     format!("Hello {name}!")
 }
 
+
+use actix_web::{web::Data,};
+use redis_tang::{Builder, Pool, RedisManager};
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(||{
+    let app_state = web::Data::new(AppState {
+        landing_platform_state: LandingPlatformState::Unknown
+    });
+
+    HttpServer::new(move ||{
         App::new()
+            .app_data( app_state.clone())
             .route("/", web::get().to(index))
             .service(greet)
-    }).bind(("192.168.1.149", 8080))?.run().await
+            // enable logger
+            .wrap(middleware::Logger::default())
+    })
+        .bind(("192.168.1.149", 8080))?
+        .run()
+        .await
 }
