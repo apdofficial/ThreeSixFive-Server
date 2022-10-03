@@ -22,7 +22,7 @@ pub enum LandingPlatformState {
     StateClosed,
     StateClosing,
     #[default]
-    Unknown
+    Unknown,
 }
 
 #[derive(Debug, Display, PartialEq, EnumString, Default)]
@@ -31,13 +31,13 @@ pub enum LandingPlatformCommand {
     CloseLid,
     GetLidStatus,
     #[default]
-    Unknown
+    Unknown,
 }
 
-#[derive(Debug, Display, PartialEq,Default)]
-struct PixelDeltas{
+#[derive(Debug, Display, PartialEq, Default)]
+struct PixelDeltas {
     x: i8,
-    y: i8
+    y: i8,
 }
 
 impl PixelDeltas {
@@ -69,7 +69,6 @@ struct MyWebSocket {
 }
 
 impl MyWebSocket {
-
     fn dispatch_deltas(&self, ctx: &mut <Self as Actor>::Context) {
         ctx.run_interval(DELTAS_INTERVAL, |act, ctx| {
             let deltas = PixelDeltas { x: 110, y: 110 }; // TODO: read the data form the sensor here
@@ -77,7 +76,6 @@ impl MyWebSocket {
             ctx.text(hex::encode(deltas.to_bytes()));
         });
     }
-
 }
 
 impl Actor for MyWebSocket {
@@ -91,7 +89,6 @@ impl Actor for MyWebSocket {
 
 /// Handler for ws::Message message
 impl StreamHandler<Result<Message, ws::ProtocolError>> for MyWebSocket {
-
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         // process websocket messages
         println!("WS: {:?}", msg);
@@ -105,15 +102,14 @@ impl StreamHandler<Result<Message, ws::ProtocolError>> for MyWebSocket {
             Ok(Message::Text(message)) => {
                 match str::from_utf8(message.as_ref()) {
                     Ok(string_message) => {
-                        match LandingPlatformCommand::from_str(string_message){
+                        match LandingPlatformCommand::from_str(string_message) {
                             Ok(command) => { process_incoming_command(command, ctx, self) }
                             _ => {}
                         };
-                    },
+                    }
                     Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
                 };
-
-            },
+            }
             Ok(Message::Close(reason)) => {
                 ctx.close(reason);
                 ctx.stop();
@@ -175,15 +171,13 @@ fn process_incoming_command(command: LandingPlatformCommand, ctx: &mut Websocket
         LandingPlatformCommand::GetLidStatus => {
             ctx.text(actor.landing_platform_state.to_string());
         }
-        LandingPlatformCommand::Unknown => {
-
-        }
+        LandingPlatformCommand::Unknown => {}
     }
 }
 
 async fn index(req: HttpRequest, stream: web::Payload, data: Data<AppState>) -> Result<HttpResponse, Error> {
     println!("{:?}", req);
-    let res = ws::start(MyWebSocket { landing_platform_state: LandingPlatformState::Unknown  }, &req, stream);
+    let res = ws::start(MyWebSocket { landing_platform_state: LandingPlatformState::Unknown }, &req, stream);
     println!("{:?}", res);
     res
 }
@@ -194,7 +188,7 @@ async fn greet(name: web::Path<String>, data: web::Data<AppState>) -> impl Respo
 }
 
 
-use actix_web::{web::Data,};
+use actix_web::{web::Data};
 use redis_tang::{Builder, Pool, RedisManager};
 
 #[actix_web::main]
@@ -203,9 +197,9 @@ async fn main() -> std::io::Result<()> {
         landing_platform_state: LandingPlatformState::Unknown
     });
 
-    HttpServer::new(move ||{
+    HttpServer::new(move || {
         App::new()
-            .app_data( app_state.clone())
+            .app_data(app_state.clone())
             .route("/", web::get().to(index))
             .service(greet)
             // enable logger
