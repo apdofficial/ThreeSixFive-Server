@@ -1,15 +1,22 @@
+use std::convert::Infallible;
 use std::env;
-extern crate dotenv;
-
+use async_std::task;
 use dotenv::dotenv;
 
-use mongodb::{bson::{doc, extjson::de::Error, oid::ObjectId}, bson, results::{InsertOneResult, UpdateResult, DeleteResult}, sync::{Client, Collection}};
-use mongodb::bson::extjson::de::Error::DeserializationError;
-use mongodb::bson::{Bson, SerializerOptions, to_document};
-use crate::IngredientUnit;
+use mongodb::{
+    bson::{doc,  oid::ObjectId},
+    bson, results::{InsertOneResult, UpdateResult, DeleteResult},
+    sync::{Client, Collection}
+};
+
+use mongodb::bson::{Bson, extjson, SerializerOptions, to_document};
+use rocket::http::ext::IntoCollection;
+use crate::{Ingredient, IngredientUnit};
 
 use crate::models::user_model::User;
 use crate::models::recipe_model::Recipe;
+use crate::serde_json::Error;
+use mongodb::error::Result;
 
 pub struct MongoRepo {
     users: Collection<User>,
@@ -26,15 +33,15 @@ impl MongoRepo {
         };
         let client = Client::with_uri_str(uri).unwrap();
         let db = client.database("ThreeSixFive");
-        let users: Collection<User> = db.collection("User");
-        let recipes: Collection<Recipe> = db.collection("Recipe");
+        let users: Collection<User> = db.collection("Users");
+        let recipes: Collection<Recipe> = db.collection("Recipes");
         MongoRepo { users, recipes }
     }
 }
 
 /// User DB
 impl MongoRepo {
-    pub fn create_user(&self, new_user: User) -> Result<InsertOneResult, Error> {
+    pub fn create_user(&self, new_user: User) -> Result<InsertOneResult> {
         let new_doc = User {
             id: None,
             name: new_user.name,
@@ -51,7 +58,7 @@ impl MongoRepo {
     }
 
 
-    pub fn get_user(&self, id: &String) -> Result<User, Error> {
+    pub fn get_user(&self, id: &String) -> Result<User> {
         let obj_id = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": obj_id};
         let user_detail = self
@@ -62,7 +69,7 @@ impl MongoRepo {
         Ok(user_detail.unwrap())
     }
 
-    pub fn update_user(&self, id: &String, new_user: User) -> Result<UpdateResult, Error> {
+    pub fn update_user(&self, id: &String, new_user: User) -> Result<UpdateResult> {
         let obj_id = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": obj_id};
         let new_doc = doc! {
@@ -82,7 +89,7 @@ impl MongoRepo {
         Ok(updated_doc)
     }
 
-    pub fn delete_user(&self, id: &String) -> Result<DeleteResult, Error> {
+    pub fn delete_user(&self, id: &String) -> Result<DeleteResult> {
         let obj_id = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": obj_id};
         let user_detail = self
@@ -94,7 +101,7 @@ impl MongoRepo {
         Ok(user_detail)
     }
 
-    pub fn get_all_users(&self) -> Result<Vec<User>, Error> {
+    pub fn get_all_users(&self) -> Result<Vec<User>> {
         let cursors = self
             .users
             .find(None, None)
@@ -109,55 +116,35 @@ impl MongoRepo {
 /// Recipe DB
 impl MongoRepo {
 
-    pub fn create_recipe(&self, new_recipe: Recipe) -> Result<InsertOneResult, Error> {
-        let recipe = self
-            .recipes
+    pub fn create_recipe(&self, new_recipe: Recipe) -> Result<InsertOneResult> {
+        self.recipes
             .insert_one(new_recipe, None)
-            .ok()
-            .expect("Error creating recipe");
-
-        Ok(recipe)
     }
 
-
-    pub fn get_recipe(&self, id: &ObjectId) -> Result<Recipe, Error> {
-        let recipe_detail = self
-            .recipes
+    pub fn get_recipe(&self, id: &ObjectId) -> Result<Option<Recipe>> {
+        self.recipes
             .find_one(doc! {"_id": id}, None)
-            .ok()
-            .expect("Error getting recipe's detail");
-        Ok(recipe_detail.unwrap())
     }
 
-    pub fn update_recipe(&self, id: &ObjectId, recipe: Recipe) -> Result<UpdateResult, Error> {
-        let doc = to_document(&recipe);
-        let updated_doc = self
-            .recipes
-            .update_one(doc! {"_id": id}, doc, None)
-            .ok()
-            .expect("Error updating recipe");
-
-        Ok(updated_doc)
+    pub fn update_recipe(&self, id: &ObjectId, recipe: Recipe) -> Result<UpdateResult> {
+        self.recipes
+            .update_one(doc! {"_id": id}, recipe.to_doc(), None)
     }
 
-    pub fn delete_recipe(&self, id: &ObjectId) -> Result<DeleteResult, Error> {
-        let recipe_detail = self
-            .recipes
+    pub fn delete_recipe(&self, id: &ObjectId) -> Result<DeleteResult> {
+        self.recipes
             .delete_one(doc! {"_id": id}, None)
-            .ok()
-            .expect("Error deleting recipe");
-
-        Ok(recipe_detail)
     }
 
-    pub fn get_all_recipes(&self) -> Result<Vec<Recipe>, Error> {
-        let cursors = self
-            .recipes
-            .find(None, None)
-            .ok()
-            .expect("Error getting list of recipes");
-        let recipes = cursors.map(|doc| doc.unwrap()).collect();
-
+    pub fn get_all_recipes(&self) -> Result<Vec<Recipe>> {
+        let cursor = self.recipes.find(None, None)?;
+        let mut recipes: Vec<Recipe> = vec![];
+        for recipe in cursor {
+            if let Ok(recipe) = recipe {
+                recipes.push(recipe);
+            }
+        }
         Ok(recipes)
     }
+
 }

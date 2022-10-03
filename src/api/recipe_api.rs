@@ -29,8 +29,8 @@ pub fn get_recipe(db: &State<MongoRepo>, path: String) -> Result<Json<Recipe>, S
     let recipe_detail = db.get_recipe(&id);
 
     match recipe_detail {
-        Ok(recipe) => Ok(Json(recipe)),
-        Err(_) => Err(Status::InternalServerError),
+        Ok(Some(recipe)) => Ok(Json(recipe)),
+        _ => Err(Status::InternalServerError),
     }
 }
 
@@ -57,8 +57,8 @@ pub fn update_recipe(
                 let updated_recipe_info = db.get_recipe(&id);
 
                 match updated_recipe_info {
-                    Ok(recipe) => Ok(Json(recipe)),
-                    Err(_) => Err(Status::InternalServerError),
+                    Ok(Some(recipe)) => Ok(Json(recipe)),
+                    _ => Err(Status::InternalServerError),
                 }
             } else {
                 Err(Status::NotFound)
@@ -86,7 +86,7 @@ pub fn delete_recipe(db: &State<MongoRepo>, path: String) -> Result<Json<&str>, 
                 Err(Status::NotFound)
             }
         }
-        Err(_) => Err(Status::InternalServerError),
+        Err(error) => Err(Status::InternalServerError),
     }
 }
 
