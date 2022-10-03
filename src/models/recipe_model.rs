@@ -164,7 +164,9 @@ impl Recipe {
                 {
                     "id": self.id.to_owned(),
                     "name": self.name.to_owned(),
-                    "images": Image::vec_to_string(self.images.to_owned()),
+                    "images": [
+                        Image::vec_to_string(self.images.to_owned())
+                    ],
                     "preparation_time_in_minutes": self.preparation_time_in_minutes.to_owned(),
                     "nutrition":
                             {
@@ -178,8 +180,12 @@ impl Recipe {
                             },
                     "num_of_likes": self.num_of_likes.to_owned(),
                     "num_of_views": self.num_of_views.to_owned(),
-                    "ingredients": Ingredient::vec_to_string(self.ingredients.to_owned()),
-                    "steps": RecipeStep::vec_to_string(self.steps.to_owned())
+                    "ingredients": [
+                        Ingredient::vec_to_string(self.ingredients.to_owned())
+                    ],
+                    "steps": [
+                        RecipeStep::vec_to_string(self.steps.to_owned())
+                    ]
                 },
         }
     }
