@@ -6,7 +6,7 @@ mod repository;
 
 use rocket::serde::json::serde_json;
 use api::user_api::{create_user, delete_user, get_user, update_user, get_all_users};
-use api::recipe_api::{create_recipe, delete_recipe, get_recipe, update_recipe, get_all_recipes};
+use api::recipe_api::{post_recipe, post_recipe_image, delete_recipe, get_recipe, update_recipe, get_all_recipes};
 use repository::mongodb_repo::MongoRepo;
 use crate::models::recipe_model::{Ingredient, IngredientUnit, Nutrition, Recipe, RecipeStep};
 
@@ -16,6 +16,7 @@ fn rocket() -> _ {
     let dummy_recipe = Recipe {
         id: None,
         name: "Salmon".parse().unwrap(),
+        images: vec![],
         preparation_time_in_minutes: 20,
         nutrition: Nutrition {
             calories: 10,
@@ -58,6 +59,8 @@ fn rocket() -> _ {
         ]
     };
 
+    println!("{}", serde_json::to_string(&dummy_recipe).unwrap());
+
     let db = MongoRepo::init();
     rocket::build()
         .manage(db)
@@ -68,7 +71,8 @@ fn rocket() -> _ {
         .mount("/", routes![delete_user])
         .mount("/", routes![get_all_users])
 
-        .mount("/", routes![create_recipe])
+        .mount("/", routes![post_recipe_image])
+        .mount("/", routes![post_recipe])
         .mount("/", routes![delete_recipe])
         .mount("/", routes![get_recipe])
         .mount("/", routes![update_recipe])

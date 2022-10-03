@@ -56,15 +56,15 @@ pub fn update_user(
 
     match update_result {
         Ok(update) => {
-            if update.matched_count == 1 {
+            return if update.matched_count == 1 {
                 let updated_user_info = db.get_user(&id);
 
-                return match updated_user_info {
+                match updated_user_info {
                     Ok(user) => Ok(Json(user)),
                     Err(_) => Err(Status::InternalServerError),
-                };
+                }
             } else {
-                return Err(Status::NotFound);
+                Err(Status::NotFound)
             }
         }
         Err(_) => Err(Status::InternalServerError),
@@ -81,10 +81,10 @@ pub fn delete_user(db: &State<MongoRepo>, path: String) -> Result<Json<&str>, St
 
     match result {
         Ok(res) => {
-            if res.deleted_count == 1 {
-                return Ok(Json("User successfully deleted!"));
+            return if res.deleted_count == 1 {
+                Ok(Json("User successfully deleted!"))
             } else {
-                return Err(Status::NotFound);
+                Err(Status::NotFound)
             }
         }
         Err(_) => Err(Status::InternalServerError),

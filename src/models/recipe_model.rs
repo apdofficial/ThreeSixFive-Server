@@ -1,8 +1,5 @@
-use std::fs::rename;
 use mongodb::bson::{doc, Document};
 use mongodb::bson::oid::ObjectId;
-use mongodb::options::UpdateModifications;
-use rocket::serde::json::Json;
 use serde::{Serialize, Deserialize};
 use strum_macros::Display;
 use strum_macros::EnumString;
@@ -14,7 +11,7 @@ pub struct RecipeStep {
 
 impl RecipeStep {
 
-    fn vec_to_string(steps: Vec<RecipeStep>) -> String {
+    pub(crate) fn vec_to_string(steps: Vec<RecipeStep>) -> String {
         let mut result = String::new();
         result += "{";
         for step in steps{
@@ -42,6 +39,35 @@ pub struct Image {
     pub width: i32,
     pub height: i32,
     pub title: String
+}
+
+impl Clone for Image {
+    fn clone(&self) -> Self {
+        Image{
+            path: self.path.to_owned(),
+            width: self.width.to_owned(),
+            height: self.height.to_owned(),
+            title: self.title.to_owned()
+        }
+    }
+}
+
+impl Image {
+
+    pub(crate) fn vec_to_string(images: Vec<Image>) -> String {
+        let mut result = String::new();
+        result += "{";
+        for image in images{
+            result += "{";
+            result += format!("path:{},", image.path.to_owned()).as_str();
+            result += format!("width:{},", image.width.to_owned()).as_str();
+            result += format!("height:{},", image.height.to_owned()).as_str();
+            result += format!("title:{},", image.title.to_owned()).as_str();
+            result += "}";
+        }
+        result += "}";
+        result
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -121,7 +147,7 @@ pub struct Recipe {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub name: String,
-    // pub images: Vec<Image>,
+    pub images: Vec<Image>,
     pub preparation_time_in_minutes: i32,
     pub nutrition: Nutrition,
     pub num_of_likes: i32,
@@ -132,58 +158,13 @@ pub struct Recipe {
 
 impl Recipe {
 
-    // pub fn clone_without_id(&self) -> Recipe{
-    //     Recipe {
-    //         id: None,
-    //         name: self.name.to_owned(),
-    //         preparation_time_in_minutes: self.preparation_time_in_minutes.to_owned(),
-    //         nutrition: Nutrition {
-    //             calories: self.nutrition.calories.to_owned(),
-    //             fat: self.nutrition.fat.to_owned(),
-    //             carbs: self.nutrition.carbs.to_owned(),
-    //             fiber: self.nutrition.fiber.to_owned(),
-    //             protein: self.nutrition.protein.to_owned(),
-    //             sugars: self.nutrition.sugars.to_owned(),
-    //             sodium: self.nutrition.sodium.to_owned()
-    //         },
-    //         num_of_likes: self.num_of_likes.to_owned(),
-    //         num_of_views: self.num_of_views.to_owned(),
-    //         ingredients: self.ingredients.to_vec(),
-    //         steps: self.steps.to_vec(),
-    //     }
-    // }
-
-    pub fn to_doc2(&self) -> Document{
-        doc! {
-            "$set":
-                {
-                    "id": self.id.to_owned(),
-                    "name": self.name.to_owned(),
-                    "preparation_time_in_minutes": self.preparation_time_in_minutes.to_owned(),
-                    "nutrition":
-                            {
-                                "calories": self.nutrition.calories.to_owned(),
-                                "fat": self.nutrition.fat.to_owned(),
-                                "carbs": self.nutrition.carbs.to_owned(),
-                                "fiber": self.nutrition.fiber.to_owned(),
-                                "protein": self.nutrition.protein.to_owned(),
-                                "sugars": self.nutrition.sugars.to_owned(),
-                                "sodium": self.nutrition.sodium.to_owned(),
-                            },
-                    "num_of_likes": self.num_of_likes.to_owned(),
-                    "num_of_views": self.num_of_views.to_owned(),
-                    "ingredients": Ingredient::vec_to_string(self.ingredients.to_owned()),
-                    "steps": RecipeStep::vec_to_string(self.steps.to_owned())
-                },
-        }
-    }
-
     pub fn to_doc(&self) -> Document{
         doc! {
             "$set":
                 {
                     "id": self.id.to_owned(),
                     "name": self.name.to_owned(),
+                    "images": Image::vec_to_string(self.images.to_owned()),
                     "preparation_time_in_minutes": self.preparation_time_in_minutes.to_owned(),
                     "nutrition":
                             {
