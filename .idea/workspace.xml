@@ -15,7 +15,12 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1420938c-5d27-464a-ac2c-053229015c48" name="Changes" comment="" />
+    <list default="true" id="1420938c-5d27-464a-ac2c-053229015c48" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/Cargo 2.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo 2.toml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -62,8 +67,8 @@
   }
 }]]></component>
   <component name="RunManager">
-    <configuration name="Run Server" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="run --package Server --bin Server" />
+    <configuration name="Run ThreeSixFive-Server" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package ThreeSixFive-Server --bin ThreeSixFive-Server" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -81,7 +86,7 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Run Server" />
+        <item itemvalue="Cargo.Run ThreeSixFive-Server" />
       </list>
     </recent_temporary>
   </component>
@@ -102,6 +107,7 @@
       <workItem from="1664294633291" duration="23785000" />
       <workItem from="1664346543645" duration="2654000" />
       <workItem from="1664796291448" duration="727000" />
+      <workItem from="1664811682455" duration="339000" />
     </task>
     <servers />
   </component>

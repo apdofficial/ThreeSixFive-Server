@@ -1,5 +1,5 @@
 [package]
-name = "Server"
+name = "ThreeSixFive-Server"
 version = "0.1.0"
 edition = "2021"
 
@@ -18,3 +18,11 @@ async-std = "1.12.0"
 future-utils = "0.12.1"
 redis_tang = "0.3.0"
 hex = "0.4.3"
+rocket = {version = "0.5.0-rc.2", features = ["json"]}
+serde = "1.0.136"
+dotenv = "0.15.0"
+
+[dependencies.mongodb]
+version = "2.2.0"
+default-features = false
+features = ["sync"]
