@@ -18,8 +18,6 @@
     <list default="true" id="1420938c-5d27-464a-ac2c-053229015c48" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/api/recipe_api.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/recipe_api.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/models/recipe_model.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/recipe_model.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,7 +126,7 @@
       <workItem from="1664796291448" duration="727000" />
       <workItem from="1664811682455" duration="487000" />
       <workItem from="1664812179165" duration="25874000" />
-      <workItem from="1664865638622" duration="2633000" />
+      <workItem from="1664865638622" duration="3957000" />
     </task>
     <servers />
   </component>
