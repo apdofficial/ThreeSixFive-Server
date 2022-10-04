@@ -1,9 +1,9 @@
-use mongodb::bson::{doc, Document};
+use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
 use strum_macros::Display;
 use strum_macros::EnumString;
-use rocket::serde::json::serde_json;
+use crate::models::image_model::Image;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RecipeStep {
@@ -14,29 +14,6 @@ impl Clone for RecipeStep {
     fn clone(&self) -> Self {
         RecipeStep{
             description: self.description.to_owned()
-        }
-    }
-}
-
-#[derive(Debug,Serialize, Deserialize)]
-#[serde(crate = "rocket::serde")]
-pub struct Image {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
-    pub path: String,
-    pub width: i32,
-    pub height: i32,
-    pub title: String
-}
-
-impl Clone for Image {
-    fn clone(&self) -> Self {
-        Image{
-            id: self.id.to_owned(),
-            path: self.path.to_owned(),
-            width: self.width.to_owned(),
-            height: self.height.to_owned(),
-            title: self.title.to_owned()
         }
     }
 }
@@ -56,6 +33,7 @@ pub struct Nutrition {
 
 #[derive(Debug, Display, PartialEq, EnumString, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
+#[allow(non_camel_case_types)]
 pub enum IngredientUnit{
     kg,
     mg,
@@ -108,13 +86,4 @@ pub struct Recipe {
     pub num_of_views: i32,
     pub ingredients: Vec<Ingredient>,
     pub steps: Vec<RecipeStep>
-}
-
-impl Recipe {
-
-    pub fn to_doc(&self) -> Document{
-        doc! {
-            "$set": serde_json::to_string(&self).unwrap(),
-        }
-    }
 }
