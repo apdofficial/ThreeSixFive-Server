@@ -3,25 +3,11 @@ use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
 use strum_macros::Display;
 use strum_macros::EnumString;
+use rocket::serde::json::serde_json;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RecipeStep {
     pub description: String,
-}
-
-impl RecipeStep {
-
-    pub(crate) fn vec_to_string(steps: Vec<RecipeStep>) -> String {
-        let mut result = String::new();
-        result += "{";
-        for step in steps{
-            result += "{";
-            result += format!("name:{},", step.description.to_owned()).as_str();
-            result += "}";
-        }
-        result += "}";
-        result
-    }
 }
 
 impl Clone for RecipeStep {
@@ -52,23 +38,6 @@ impl Clone for Image {
     }
 }
 
-impl Image {
-
-    pub(crate) fn vec_to_string(images: Vec<Image>) -> String {
-        let mut result = String::new();
-        result += "{";
-        for image in images{
-            result += "{";
-            result += format!("path:{},", image.path.to_owned()).as_str();
-            result += format!("width:{},", image.width.to_owned()).as_str();
-            result += format!("height:{},", image.height.to_owned()).as_str();
-            result += format!("title:{},", image.title.to_owned()).as_str();
-            result += "}";
-        }
-        result += "}";
-        result
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -124,24 +93,6 @@ impl Clone for Ingredient {
     }
 }
 
-impl Ingredient {
-
-    pub(crate) fn vec_to_string(ingredients: Vec<Ingredient>) -> String {
-
-        let mut result = String::new();
-        result.push_str("{");
-        for ingredient in ingredients{
-            result.push_str("{");
-            result.push_str(format!("name:{},", ingredient.name.to_owned()).as_str());
-            result.push_str(format!("unit:{},", ingredient.unit.to_string()).as_str());
-            result.push_str(format!("amount:{},", ingredient.amount.to_owned()).as_str());
-            result.push_str("}");
-        }
-        result.push_str("}");
-        result
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Recipe {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
@@ -160,33 +111,33 @@ impl Recipe {
 
     pub fn to_doc(&self) -> Document{
         doc! {
-            "$set":
-                {
-                    "id": self.id.to_owned(),
-                    "name": self.name.to_owned(),
-                    "images": [
-                        Image::vec_to_string(self.images.to_owned())
-                    ],
-                    "preparation_time_in_minutes": self.preparation_time_in_minutes.to_owned(),
-                    "nutrition":
-                            {
-                                "calories": self.nutrition.calories.to_owned(),
-                                "fat": self.nutrition.fat.to_owned(),
-                                "carbs": self.nutrition.carbs.to_owned(),
-                                "fiber": self.nutrition.fiber.to_owned(),
-                                "protein": self.nutrition.protein.to_owned(),
-                                "sugars": self.nutrition.sugars.to_owned(),
-                                "sodium": self.nutrition.sodium.to_owned(),
-                            },
-                    "num_of_likes": self.num_of_likes.to_owned(),
-                    "num_of_views": self.num_of_views.to_owned(),
-                    "ingredients": [
-                        Ingredient::vec_to_string(self.ingredients.to_owned())
-                    ],
-                    "steps": [
-                        RecipeStep::vec_to_string(self.steps.to_owned())
-                    ]
-                },
+            "$set": serde_json::to_string(&self).unwrap(),
         }
     }
+
+    // pub fn to_update_doc(&self) -> Document{
+    //     doc! {
+    //         "$set":
+    //             {
+    //                 "id": self.id.to_owned(),
+    //                 "name": self.name.to_owned(),
+    //                 "images": serde_json::to_string(&self.images).unwrap(),
+    //                 "preparation_time_in_minutes": self.preparation_time_in_minutes.to_owned(),
+    //                 "nutrition":
+    //                         {
+    //                             "calories": self.nutrition.calories.to_owned(),
+    //                             "fat": self.nutrition.fat.to_owned(),
+    //                             "carbs": self.nutrition.carbs.to_owned(),
+    //                             "fiber": self.nutrition.fiber.to_owned(),
+    //                             "protein": self.nutrition.protein.to_owned(),
+    //                             "sugars": self.nutrition.sugars.to_owned(),
+    //                             "sodium": self.nutrition.sodium.to_owned(),
+    //                         },
+    //                 "num_of_likes": self.num_of_likes.to_owned(),
+    //                 "num_of_views": self.num_of_views.to_owned(),
+    //                 "ingredients": serde_json::to_string(&self.ingredients).unwrap(),
+    //                 "steps": serde_json::to_string(&self.steps).unwrap()
+    //             },
+    //     }
+    // }
 }

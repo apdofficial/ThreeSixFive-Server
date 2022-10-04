@@ -1,26 +1,21 @@
-use std::convert::Infallible;
 use std::env;
-use async_std::task;
 use dotenv::dotenv;
 
 use mongodb::{
-    bson::{doc,  oid::ObjectId},
-    bson, results::{InsertOneResult, UpdateResult, DeleteResult},
+    bson::{doc,  oid::ObjectId}, results::{InsertOneResult, UpdateResult, DeleteResult},
     sync::{Client, Collection}
 };
 
-use mongodb::bson::{Bson, extjson, SerializerOptions, to_document};
-use rocket::http::ext::IntoCollection;
-use crate::{Ingredient, IngredientUnit};
 
 use crate::models::user_model::User;
 use crate::models::recipe_model::Recipe;
-use crate::serde_json::Error;
 use mongodb::error::Result;
+use crate::Image;
 
 pub struct MongoRepo {
     users: Collection<User>,
     recipes: Collection<Recipe>,
+    images: Collection<Image>,
 }
 
 /// DB
@@ -35,7 +30,8 @@ impl MongoRepo {
         let db = client.database("ThreeSixFive");
         let users: Collection<User> = db.collection("Users");
         let recipes: Collection<Recipe> = db.collection("Recipes");
-        MongoRepo { users, recipes }
+        let images: Collection<Image> = db.collection("Images");
+        MongoRepo { users, recipes, images }
     }
 }
 
@@ -116,27 +112,23 @@ impl MongoRepo {
 /// Recipe DB
 impl MongoRepo {
 
-    pub fn create_recipe(&self, new_recipe: Recipe) -> Result<InsertOneResult> {
-        self.recipes
-            .insert_one(new_recipe, None)
+    pub async fn create_recipe(&self, new_recipe: Recipe) -> Result<InsertOneResult> {
+        self.recipes.insert_one(new_recipe, None)
     }
 
-    pub fn get_recipe(&self, id: &ObjectId) -> Result<Option<Recipe>> {
-        self.recipes
-            .find_one(doc! {"_id": id}, None)
+    pub async fn get_recipe(&self, id: &ObjectId) -> Result<Option<Recipe>> {
+        self.recipes.find_one(doc! {"_id": id}, None)
     }
 
-    pub fn update_recipe(&self, id: &ObjectId, recipe: Recipe) -> Result<UpdateResult> {
-        self.recipes
-            .update_one(doc! {"_id": id}, recipe.to_doc(), None)
+    pub async fn update_recipe(&self, id: &ObjectId, recipe: Recipe) -> Result<Option<Recipe>> {
+         self.recipes.find_one_and_replace(doc! {"_id": id}, recipe, None)
     }
 
-    pub fn delete_recipe(&self, id: &ObjectId) -> Result<DeleteResult> {
-        self.recipes
-            .delete_one(doc! {"_id": id}, None)
+    pub async fn delete_recipe(&self, id: &ObjectId) -> Result<DeleteResult> {
+        self.recipes.delete_one(doc! {"_id": id}, None)
     }
 
-    pub fn get_all_recipes(&self) -> Result<Vec<Recipe>> {
+    pub async fn get_all_recipes(&self) -> Result<Vec<Recipe>> {
         let cursor = self.recipes.find(None, None)?;
         let mut recipes: Vec<Recipe> = vec![];
         for recipe in cursor {
@@ -146,5 +138,20 @@ impl MongoRepo {
         }
         Ok(recipes)
     }
+}
 
+/// Image DB
+impl MongoRepo {
+
+    pub async fn create_image(&self, image: &Image) -> Result<InsertOneResult> {
+        self.images.insert_one(image, None)
+    }
+
+    pub async fn get_image(&self, id: &ObjectId) -> Result<Option<Image>> {
+        self.images.find_one(doc! {"_id": id}, None)
+    }
+
+    pub async fn delete_image(&self, id: &ObjectId) -> Result<DeleteResult> {
+        self.images.delete_one(doc! {"_id": id}, None)
+    }
 }
