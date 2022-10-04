@@ -20,7 +20,6 @@
       <change beforePath="$PROJECT_DIR$/src/api/recipe_api.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/recipe_api.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/models/recipe_model.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/recipe_model.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/repository/mongodb_repo.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/repository/mongodb_repo.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,7 +63,7 @@
     "WebServerToolWindowFactoryState": "false",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "last_opened_file_path": "/Users/andrejpistek/Developer/GitHub/ThreeSixFive-Server/src",
+    "last_opened_file_path": "/Users/andrejegeniq/Developer/GitHub/Server",
     "nodejs_package_manager_path": "npm",
     "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
     "org.rust.disableDetachedFileInspection/Users/andrejpistek/Developer/GitHub/Server/src/test.rs": "true",
@@ -129,6 +128,7 @@
       <workItem from="1664796291448" duration="727000" />
       <workItem from="1664811682455" duration="487000" />
       <workItem from="1664812179165" duration="25874000" />
+      <workItem from="1664865638622" duration="2633000" />
     </task>
     <servers />
   </component>

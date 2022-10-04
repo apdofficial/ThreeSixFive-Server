@@ -47,7 +47,7 @@ pub async fn post_recipe(
 ) -> Result<Json<InsertOneResult>, Status> {
     let recipe_detail = db.create_recipe(new_recipe.into_inner()).await;
     match recipe_detail {
-        Ok(recipe) => Ok(Json(recipe)),
+        Ok(result) => Ok(Json(result)),
         Err(_) => Err(Status::InternalServerError),
     }
 }
@@ -124,7 +124,7 @@ pub async fn get_all_recipes(db: &State<MongoRepo>) -> Result<Json<Vec<Recipe>>,
 
 
 #[post("/image/<id>",  data = "<form>")]
-pub async fn post_recipe_image(
+pub async fn post_image(
     db: &State<MongoRepo>,
     id: String,
     mut form: Form<UploadImage<'_>>
@@ -139,22 +139,36 @@ pub async fn post_recipe_image(
             let some_path = std::env::temp_dir().join(form.file.name().unwrap());
             form.file.persist_to(&some_path).await.unwrap();
             let image_file = read_image(&some_path).await;
-            let image = Image {
+            let mut image = Image {
+                id: None,
                 path: some_path.to_str().unwrap().to_string(),
                 width: image_file.width,
                 height: image_file.height,
                 title: form.file.name().unwrap().parse().unwrap()
             };
 
-            let insert_result = db.create_image(&image)
+            let image_id = db.create_image(&image)
                 .await
-                .map_err(|err| Status::InternalServerError)?;
+                .map(|result| result.inserted_id.as_object_id())
+                .map_err(|_err| {
+                    error!("{:?}", _err);
+                    Status::InternalServerError
+                })?
+                .ok_or({
+                    error!("No Object ID found!");
+                    Status::InternalServerError
+                })?;
 
-            recipe.images.push(image);
+            image.id = Some(image_id);
+
+            recipe.images.push(image.clone());
 
             let recipe_detail = db.update_recipe(&id, recipe).await;
             match recipe_detail {
-                Ok(Some(recipe)) => Ok(Json(recipe)),
+                Ok(Some(mut recipe)) => {
+                    recipe.images.push(image);
+                    Ok(Json(recipe))
+                },
                 _ => Err(Status::InternalServerError),
             }
         }
@@ -193,5 +207,26 @@ pub async fn get_image(db: &State<MongoRepo>, id: String) -> Result<Img, Status>
             let image_file = read_image(&path).await;
             Ok(Img((ContentType::JPEG, image_file.data)))
         }
+    }
+}
+
+#[delete("/image/<id>")]
+pub async fn delete_image(db: &State<MongoRepo>, id: String) -> Result<Json<&str>, Status> {
+    if id.is_empty() {
+        return Err(Status::BadRequest);
+    };
+    let id = ObjectId::parse_str(id).unwrap();
+
+    let result = db.delete_image(&id).await;
+
+    match result {
+        Ok(res) => {
+            return if res.deleted_count == 1 {
+                Ok(Json("image successfully deleted!"))
+            } else {
+                Err(Status::NotFound)
+            }
+        }
+        Err(error) => Err(Status::InternalServerError),
     }
 }

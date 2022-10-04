@@ -8,12 +8,13 @@ use rocket::serde::json::serde_json;
 use api::user_api::{create_user, delete_user, get_user, update_user, get_all_users};
 use api::recipe_api::{
     post_recipe, 
-    post_recipe_image, 
+    post_image,
     delete_recipe, 
     get_recipe, 
     update_recipe, 
     get_all_recipes, 
-    get_image
+    get_image,
+    delete_image
 };
 use repository::mongodb_repo::MongoRepo;
 use crate::models::recipe_model::{Image, Ingredient, IngredientUnit, Nutrition, Recipe, RecipeStep};
@@ -26,12 +27,14 @@ fn rocket() -> _ {
         name: "Salmon".parse().unwrap(),
         images: vec![
             Image {
+                id: None,
                 path: "1".to_string(),
                 width: 10,
                 height: 10,
                 title: "hello 1".to_string()
             },
             Image {
+                id: None,
                 path: "2".to_string(),
                 width: 10,
                 height: 10,
@@ -92,12 +95,14 @@ fn rocket() -> _ {
         .mount("/", routes![delete_user])
         .mount("/", routes![get_all_users])
 
-        .mount("/", routes![post_recipe_image])
         .mount("/", routes![post_recipe])
         .mount("/", routes![delete_recipe])
         .mount("/", routes![get_recipe])
         .mount("/", routes![update_recipe])
         .mount("/", routes![get_all_recipes])
+
+        .mount("/", routes![post_image])
         .mount("/", routes![get_image])
+        .mount("/", routes![delete_image])
 
 }

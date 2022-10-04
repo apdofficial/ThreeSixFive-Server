@@ -21,6 +21,8 @@ impl Clone for RecipeStep {
 #[derive(Debug,Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct Image {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
     pub path: String,
     pub width: i32,
     pub height: i32,
@@ -30,6 +32,7 @@ pub struct Image {
 impl Clone for Image {
     fn clone(&self) -> Self {
         Image{
+            id: self.id.to_owned(),
             path: self.path.to_owned(),
             width: self.width.to_owned(),
             height: self.height.to_owned(),
@@ -114,30 +117,4 @@ impl Recipe {
             "$set": serde_json::to_string(&self).unwrap(),
         }
     }
-
-    // pub fn to_update_doc(&self) -> Document{
-    //     doc! {
-    //         "$set":
-    //             {
-    //                 "id": self.id.to_owned(),
-    //                 "name": self.name.to_owned(),
-    //                 "images": serde_json::to_string(&self.images).unwrap(),
-    //                 "preparation_time_in_minutes": self.preparation_time_in_minutes.to_owned(),
-    //                 "nutrition":
-    //                         {
-    //                             "calories": self.nutrition.calories.to_owned(),
-    //                             "fat": self.nutrition.fat.to_owned(),
-    //                             "carbs": self.nutrition.carbs.to_owned(),
-    //                             "fiber": self.nutrition.fiber.to_owned(),
-    //                             "protein": self.nutrition.protein.to_owned(),
-    //                             "sugars": self.nutrition.sugars.to_owned(),
-    //                             "sodium": self.nutrition.sodium.to_owned(),
-    //                         },
-    //                 "num_of_likes": self.num_of_likes.to_owned(),
-    //                 "num_of_views": self.num_of_views.to_owned(),
-    //                 "ingredients": serde_json::to_string(&self.ingredients).unwrap(),
-    //                 "steps": serde_json::to_string(&self.steps).unwrap()
-    //             },
-    //     }
-    // }
 }
