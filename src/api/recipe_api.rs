@@ -10,7 +10,7 @@ pub async fn create_recipe(
 ) -> Result<Json<InsertOneResult>, Status> {
     match db.create_recipe(new_recipe.into_inner()).await {
         Ok(result) => Ok(Json(result)),
-        Err(_) => Err(Status::InternalServerError),
+        _ => Err(Status::InternalServerError),
     }
 }
 
@@ -46,7 +46,7 @@ pub async fn delete_recipe(db: &State<MongoRepo>, id: String) -> Result<Json<&st
                 Err(Status::NotFound)
             }
         }
-        Err(_err) => Err(Status::InternalServerError),
+        _ => Err(Status::InternalServerError),
     }
 }
 
@@ -54,6 +54,6 @@ pub async fn delete_recipe(db: &State<MongoRepo>, id: String) -> Result<Json<&st
 pub async fn get_all_recipes(db: &State<MongoRepo>) -> Result<Json<Vec<Recipe>>, Status> {
     match db.get_all_recipes().await {
         Ok(recipes) => Ok(Json(recipes)),
-        Err(_) => Err(Status::InternalServerError),
+        _ => Err(Status::InternalServerError),
     }
 }

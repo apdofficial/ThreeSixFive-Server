@@ -4,6 +4,7 @@ mod api;
 mod models;
 mod repository;
 mod helpers;
+mod tests;
 
 use rocket::serde::json::serde_json;
 use api::user_api::{create_user, delete_user, get_user, update_user, get_all_users};
@@ -32,6 +33,20 @@ fn rocket() -> _ {
     rocket::build()
         .manage(db)
 
+        .attach(fairings::cors::CORS)
+
+        .mount(
+            "/",
+            openapi_get_routes![
+                routes::index,
+                routes::customer::get_customers,
+                routes::customer::get_customer_by_id,
+                routes::customer::post_customer,
+                routes::customer::patch_customer_by_id,
+                routes::customer::delete_customer_by_id
+            ],
+        )
+
         .mount("/", routes![create_user])
         .mount("/", routes![get_user])
         .mount("/", routes![update_user])
@@ -47,4 +62,16 @@ fn rocket() -> _ {
         .mount("/", routes![create_image])
         .mount("/", routes![get_image])
         .mount("/", routes![delete_image])
+
+        .mount(
+            "/api-docs",
+            make_swagger_ui(&SwaggerUIConfig {
+                url: "../openapi.json".to_owned(),
+                ..Default::default()
+            }),
+        )
 }
+
+// Unit testings
+#[cfg(test)]
+mod tests;

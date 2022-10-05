@@ -28,12 +28,12 @@ pub async fn create_image(
 ) -> Result<Json<Recipe>, Status> {
     match db.get_recipe(&id).await {
         Ok(Some(mut recipe)) => {
-            let some_path = std::env::temp_dir().join(form.file.name().unwrap());
-            form.file.persist_to(&some_path).await.unwrap();
-            let image_file = ImageFile::read(&some_path).await;
+            let temp_path = std::env::temp_dir().join(form.file.name().unwrap());
+            form.file.persist_to(&temp_path).await.unwrap();
+            let image_file = ImageFile::read(&temp_path).await;
             let mut image = Image {
                 id: None,
-                path: some_path.to_str().unwrap().to_string(),
+                path: temp_path.to_str().unwrap().to_string(),
                 width: image_file.width,
                 height: image_file.height,
                 title: form.file.name().unwrap().parse().unwrap()
@@ -55,8 +55,7 @@ pub async fn create_image(
 
             recipe.images.push(image.clone());
 
-            let recipe_detail = db.update_recipe(&id, recipe).await;
-            match recipe_detail {
+            match db.update_recipe(&id, recipe).await {
                 Ok(Some(mut recipe)) => {
                     recipe.images.push(image);
                     Ok(Json(recipe))
@@ -74,11 +73,10 @@ pub async fn get_image(db: &State<MongoRepo>, id: String) -> Result<ImageRespons
         .await
         .map_err(|_err| Status::InternalServerError)?;
 
-    let mut path = PathBuf::new();
-
     match image {
         None => Err(Status::InternalServerError),
         Some(image) => {
+            let mut path = PathBuf::new();
             path.push(image.path);
             let image_file = ImageFile::read(&path).await;
             Ok(ImageResponse((ContentType::JPEG, image_file.data)))
