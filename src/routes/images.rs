@@ -21,6 +21,7 @@ use crate::models::recipe::Recipe;
 
 pub struct ImageResponse(pub (ContentType, Vec<u8>));
 
+use uuid::Uuid;
 
 
 #[openapi(tag = "Image")]
@@ -34,10 +35,10 @@ pub async fn post_image(
     let id =
         parse_id(&id).map_err(|err| MyError::build(Status::BadRequest.code, Some(err.details)))?;
 
-
+    let uuid = Uuid::new_v4();
     match recipe::find_one_recipe(&db, id).await {
         Ok(Some(mut recipe)) => {
-            let temp_path = std::env::temp_dir().join(file.name().unwrap());
+            let temp_path = std::env::temp_dir().join(uuid.to_string());
             file.persist_to(&temp_path).await.unwrap();
             let image_file = ImageFile::read(&temp_path).await;
             let mut image = Image {

@@ -8,6 +8,7 @@ use rocket_okapi::openapi;
 use crate::models::recipe::Recipe;
 use crate::request_guards::basic::ApiKey;
 use crate::db::{parse_id, recipe};
+
 use crate::errors::response::MyError;
 
 #[openapi(tag = "Recipe")]

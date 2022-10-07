@@ -33,7 +33,7 @@ fn rocket() -> _ {
                 routes::recipes::update_recipe,
                 routes::recipes::delete_recipe,
                 routes::recipes::get_all_recipes,
-                
+
                 routes::images::post_image,
                 routes::images::get_image,
                 routes::images::delete_image,
