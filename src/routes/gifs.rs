@@ -5,7 +5,7 @@ use rocket::response::status::BadRequest;
 use rocket::serde::json::Json;
 use rocket_okapi::openapi;
 use std::path::PathBuf;
-use mongodb::bson::Bson::DateTime;
+use mongodb::bson::DateTime;
 use rocket::form::Form;
 use rocket::http::ContentType;
 use rocket::response::Responder;
@@ -62,7 +62,7 @@ pub async fn post_gif(
                 _id: "".to_string(),
                 description: form.description.clone(),
                 gif,
-                created_at: "".to_string()
+                created_at: DateTime::now().to_string()
             };
 
             let recipe_step_id = gif::insert_recipe_step(&db, recipe_step.clone())

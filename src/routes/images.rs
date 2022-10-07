@@ -5,6 +5,7 @@ use rocket::response::status::BadRequest;
 use rocket::serde::json::Json;
 use rocket_okapi::openapi;
 use std::path::PathBuf;
+use mongodb::bson::DateTime;
 use rocket::form::Form;
 use rocket::http::ContentType;
 use rocket::response::Responder;
@@ -26,7 +27,7 @@ use crate::routes::gifs::FileResponse;
 #[derive(FromForm)]
 pub struct ImageForm<'v> {
     pub title: String,
-    pub file:TempFile<'v>,
+    pub file: TempFile<'v>,
 }
 
 
@@ -55,7 +56,7 @@ pub async fn post_image(
                 width: image_file.width,
                 height: image_file.height,
                 title: form.file.name().unwrap().parse().unwrap(),
-                created_at: "".to_string()
+                created_at: DateTime::now().to_string()
             };
 
             let image_id = image::insert_image(&db,image.clone())
