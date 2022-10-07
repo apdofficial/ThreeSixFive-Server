@@ -1,27 +1,29 @@
 [package]
-name = "ThreeSixFive-Server"
+name = "threesixfive-server"
+description = "CRUD REST ThreeSixFive API"
 version = "0.1.0"
 edition = "2021"
+authors = ["Andrej Pistek <a.pistek@outlook.com>"]
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#actix = "0.13.0"
-#actix-rt = "2.7.0"
-#actix-web = "4.2.1"
-#actix-web-actors = "4.1.0"
+rocket =  { version = "0.5.0-rc.2", default-features = false, features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+schemars = "0.8"
+okapi = { version = "0.6.0-alpha-1" }
+rocket_okapi = { version = "0.8.0-rc.2", features = ["swagger", "secrets"] }
+dotenv = "0.15.0"
+futures = "0.3"
+chrono = "0.4"
+image = "0.24.4"
 strum = "0.24"
 strum_macros = "0.24"
-futures = "0.3"
 tokio = "1.21.1"
 async-std = "1.12.0"
 future-utils = "0.12.1"
-redis_tang = "0.3.0"
-hex = "0.4.3"
-rocket = {version = "0.5.0-rc.2", features = ["json"]}
-serde = "1.0.136"
-dotenv = "0.15.0"
-image = "0.24.4"
-okapi = { version = "0.6.0-alpha-1" }
-rocket_okapi = { version = "0.8.0-rc.2", features = ["swagger", "secrets"] }
 
 [dependencies.mongodb]
 version = "2.2.0"
