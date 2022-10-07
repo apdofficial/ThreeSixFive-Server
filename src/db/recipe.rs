@@ -36,15 +36,20 @@ pub async fn find_all_recipes(db: &Database) -> Result<Vec<Recipe>, DbError> {
     let mut cursor = collection
         .find(None, None)
         .await
-        .map_err(|_err| DbError::new("Failed to find_all_recipes.".to_string()))?;
+        .map_err(|_err|
+            DbError::new(format!("Failed to find_all_recipes:").to_string())
+        )?;
 
-    let mut recipes: Vec<Recipe> = vec![];
-    while let candidate = cursor.try_next().await {
-        let recipe = candidate.map_err(|_err| DbError::new("Failed to get recipe.".to_string()))?;
-        if let Some(recipe) = recipe {
-            recipes.push(recipe.to_object());
-        }
-    }
+    let recipe_documents: Vec<_> = cursor.try_collect().await
+        .map_err(|_err|
+            DbError::new(format!("Failed to find_all_recipes:").to_string())
+        )?;
+
+    let recipes = recipe_documents
+        .into_iter()
+        .map(|doc| doc.to_object())
+        .collect();
+
     Ok(recipes)
 }
 

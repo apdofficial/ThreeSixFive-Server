@@ -33,19 +33,21 @@ pub async fn find_one_image(db: &Database, id: ObjectId) -> Result<Option<Image>
 
 pub async fn find_all_images(db: &Database) -> Result<Vec<Image>, DbError> {
     let collection = get_images_collection(&db);
-    let mut cursor = collection
+    let cursor = collection
         .find(None, None)
         .await
         .map_err(|_err| DbError::new("Failed to find_all_images.".to_string()))?;
-    let mut images: Vec<Image> = vec![];
 
-    while let candidate = cursor.try_next().await {
-        let image = candidate
-            .map_err(|_err| DbError::new("Failed to get recipe.".to_string()))?;
-        if let Some(image) = image{
-            images.push(image.to_object());
-        }
-    }
+    let image_documents: Vec<_> = cursor.try_collect().await
+        .map_err(|_err|
+            DbError::new(format!("Failed to find_all_recipes:").to_string())
+        )?;
+
+    let images = image_documents
+        .into_iter()
+        .map(|doc| doc.to_object())
+        .collect();
+
     Ok(images)
 }
 

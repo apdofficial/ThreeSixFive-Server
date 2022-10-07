@@ -22,11 +22,11 @@ fn rocket() -> _ {
             "/",
             openapi_get_routes![
                 routes::index,
-                routes::customer::get_customers,
-                routes::customer::get_customer_by_id,
-                routes::customer::post_customer,
-                routes::customer::patch_customer_by_id,
-                routes::customer::delete_customer_by_id,
+                // routes::customer::get_customers,
+                // routes::customer::get_customer_by_id,
+                // routes::customer::post_customer,
+                // routes::customer::patch_customer_by_id,
+                // routes::customer::delete_customer_by_id,
 
                 routes::recipes::post_recipe,
                 routes::recipes::get_recipe,

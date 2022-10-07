@@ -1,18 +1,13 @@
 use mongodb::bson::doc;
 use mongodb::Database;
 use rocket::http::Status;
-use rocket::response::status::BadRequest;
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_okapi::openapi;
 
 use crate::models::recipe::Recipe;
-use crate::models::response::MessageResponse;
-
 use crate::request_guards::basic::ApiKey;
-
 use crate::db::{parse_id, recipe};
-
 use crate::errors::response::MyError;
 
 #[openapi(tag = "Recipe")]
@@ -21,16 +16,17 @@ pub async fn post_recipe(
     db: &State<Database>,
     recipe: Json<Recipe>,
     _key: ApiKey,
-) -> Result<Json<String>, BadRequest<Json<MessageResponse>>> {
+) -> Result<Json<String>, MyError> {
     return match recipe::insert_recipe(&db, recipe.into_inner()).await {
         Ok(result) => {
             Ok(Json(result.inserted_id.to_string()))
         }
         Err(_error) => {
             println!("{:?}", _error);
-            Err(BadRequest(Some(Json(MessageResponse {
-                message: format!("Invalid input"),
-            }))))
+            Err(MyError::build(
+                Status::InternalServerError.code,
+                Some(format!("Recipe not added."))
+            ))
         }
     }
 }
@@ -140,9 +136,12 @@ pub async fn delete_recipe(
 pub async fn get_all_recipes(
     db: &State<Database>,
     _key: ApiKey
-) -> Result<Json<Vec<Recipe>>, Status> {
+) -> Result<Json<Vec<Recipe>>, MyError> {
     match recipe::find_all_recipes(&db).await {
-        Ok(recipes) => Ok(Json(recipes)),
-        _ => Err(Status::InternalServerError),
+        Ok(_docs) => Ok(Json(_docs)),
+        Err(_error) => {
+            println!("{:?}", _error);
+            return Err(MyError::build(Status::BadRequest.code, Some(_error.to_string())));
+        }
     }
 }

@@ -90,7 +90,7 @@ impl Recipe {
 #[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]
 pub struct RecipeStep {
     pub description: String,
-    pub gi: String,
+    pub gif: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]

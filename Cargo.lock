@@ -73,16 +73,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-attributes"
-version = "1.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3203e79f4dd9bdda415ed03cf14dae5a2bf775c683a00f94e9cd1faf0f596e5"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
 name = "async-channel"
 version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -152,35 +142,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-process"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02111fd8655a613c25069ea89fc8d9bb89331fa77486eb3bc059ee757cfa481c"
-dependencies = [
- "async-io",
- "autocfg",
- "blocking",
- "cfg-if 1.0.0",
- "event-listener",
- "futures-lite",
- "libc",
- "once_cell",
- "signal-hook",
- "winapi 0.3.9",
-]
-
-[[package]]
 name = "async-std"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62565bb4402e926b29953c785397c6dc0391b7b446e45008b0049eb43cec6f5d"
 dependencies = [
- "async-attributes",
  "async-channel",
  "async-global-executor",
  "async-io",
  "async-lock",
- "async-process",
  "crossbeam-utils 0.8.12",
  "futures-channel",
  "futures-core",
@@ -195,21 +165,6 @@ dependencies = [
  "pin-utils",
  "slab",
  "wasm-bindgen-futures",
-]
-
-[[package]]
-name = "async-std-resolver"
-version = "0.21.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f2f8a4a203be3325981310ab243a28e6e4ea55b6519bffce05d41ab60e09ad8"
-dependencies = [
- "async-std",
- "async-trait",
- "futures-io",
- "futures-util",
- "pin-utils",
- "socket2",
- "trust-dns-resolver",
 ]
 
 [[package]]
@@ -1553,8 +1508,6 @@ version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5a1df476ac9541b0e4fdc8e2cc48884e66c92c933cd17a1fd75e68caf75752e"
 dependencies = [
- "async-std",
- "async-std-resolver",
  "async-trait",
  "base64",
  "bitflags",
@@ -1576,6 +1529,7 @@ dependencies = [
  "rustls",
  "rustls-pemfile",
  "serde",
+ "serde_bytes",
  "serde_with",
  "sha-1",
  "sha2",
@@ -2418,16 +2372,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "signal-hook"
-version = "0.3.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a253b5e89e2698464fc26b545c9edceb338e18a89effeeecfea192c3025be29d"
-dependencies = [
- "libc",
- "signal-hook-registry",
-]
-
-[[package]]
 name = "signal-hook-registry"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2932,7 +2876,6 @@ checksum = "0bb2e075f03b3d66d8d8785356224ba688d2906a371015e225beeb65ca92c740"
 dependencies = [
  "bytes 1.2.1",
  "futures-core",
- "futures-io",
  "futures-sink",
  "pin-project-lite",
  "tokio 1.21.2",
