@@ -115,24 +115,24 @@ pub async fn get_gif(
     let id =
         parse_id(&id).map_err(|err| MyError::build(Status::BadRequest.code, Some(err.details)))?;
 
-    match image::find_one_image(&db, id).await {
+    match gif::find_one_recipe_step(&db, id).await {
         Ok(image) => match image {
             Some(image) => {
                 let mut path = PathBuf::new();
-                path.push(image.path);
+                path.push(image.gif.path);
                 let image_file = ImageFile::read(&path).await;
                 Ok(FileResponse((ContentType::JPEG, image_file.data)))
             },
             None => Err(MyError::build(
                 Status::NotFound.code,
-                Some("Could not find the image.".to_string())
+                Some("Could not find the GIF.".to_string())
             ))
         },
         Err(_error) => {
             println!("{:?}", _error);
             return Err(MyError::build(
                 Status::BadRequest.code,
-                Some(format!("Image not found with _id {}", &id)),
+                Some(format!("GIF not found with _id {}", &id)),
             ));
         }
     }
