@@ -8,45 +8,54 @@ use std::path::PathBuf;
 use rocket::form::Form;
 use rocket::http::ContentType;
 use rocket::response::Responder;
-use rocket::{Request, Response, response, State};
+use rocket::{Data, Request, Response, response, State};
 use rocket::fs::TempFile;
+use schemars::JsonSchema;
 
 use crate::models::response::MessageResponse;
 use crate::request_guards::basic::ApiKey;
 use crate::db::{parse_id, image, recipe};
 use crate::db::error::DbError;
 use crate::errors::response::MyError;
-use crate::models::image::{Image, ImageFile, UploadImage};
+use crate::models::image::{Image, ImageFile};
 use crate::models::recipe::Recipe;
 
 pub struct ImageResponse(pub (ContentType, Vec<u8>));
 
 use uuid::Uuid;
 
+#[derive(FromForm)]
+pub struct ImageForm<'v> {
+    pub title: String,
+    pub file:TempFile<'v>,
+}
 
-#[openapi(tag = "Image")]
-#[post("/image/<id>",  data="<file>")]
+
+#[post("/image/<id>",  data="<form>")]
 pub async fn post_image(
     db: &State<Database>,
     id: String,
-    mut file: TempFile<'_>,
+    mut form: Form<ImageForm<'_>>,
     _key: ApiKey,
 ) -> Result<Json<Recipe>, MyError> {
-    let id =
-        parse_id(&id).map_err(|err| MyError::build(Status::BadRequest.code, Some(err.details)))?;
+    let id = parse_id(&id)
+            .map_err(|err|
+                MyError::build(
+                    Status::BadRequest.code,
+                    Some(err.details)
+                ))?;
 
-    let uuid = Uuid::new_v4();
     match recipe::find_one_recipe(&db, id).await {
         Ok(Some(mut recipe)) => {
-            let temp_path = std::env::temp_dir().join(uuid.to_string());
-            file.persist_to(&temp_path).await.unwrap();
+            let temp_path = std::env::temp_dir().join(form.title.as_str());
+            form.file.persist_to(&temp_path).await.unwrap();
             let image_file = ImageFile::read(&temp_path).await;
             let mut image = Image {
                 _id: "".to_string(),
                 path: temp_path.to_str().unwrap().to_string(),
                 width: image_file.width,
                 height: image_file.height,
-                title: file.name().unwrap().parse().unwrap(),
+                title: form.file.name().unwrap().parse().unwrap(),
                 created_at: "".to_string()
             };
 
@@ -102,16 +111,16 @@ pub async fn get_image(
 
     match image::find_one_image(&db, id).await {
         Ok(image) => match image {
-            None => Err(MyError::build(
-                Status::NotFound.code,
-                Some("Could not find the image.".to_string())
-            )),
             Some(image) => {
                 let mut path = PathBuf::new();
                 path.push(image.path);
                 let image_file = ImageFile::read(&path).await;
                 Ok(ImageResponse((ContentType::JPEG, image_file.data)))
-            }
+            },
+            None => Err(MyError::build(
+                Status::NotFound.code,
+                Some("Could not find the image.".to_string())
+            ))
         },
         Err(_error) => {
             println!("{:?}", _error);

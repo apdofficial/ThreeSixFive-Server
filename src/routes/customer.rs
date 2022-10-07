@@ -76,7 +76,7 @@ pub async fn get_customer_by_id(
 pub async fn post_customer(
     db: &State<Database>,
     input: Json<CustomerInput>,
-) -> Result<Json<String>, MyError> {
+) -> Result<Json<String>, BadRequest<Json<MessageResponse>>> {
     // can set with a single error like this.
     match customer::insert_customer(&db, input).await {
         Ok(_customer_doc_id) => {
@@ -84,10 +84,9 @@ pub async fn post_customer(
         }
         Err(_error) => {
             println!("{:?}", _error);
-            return Err(MyError::build(
-                Status::BadRequest.code,
-                Some(format!("Customer not found with _id {}", &_id)),
-            ));
+            return Err(BadRequest(Some(Json(MessageResponse {
+                message: format!("Invalid input"),
+            }))));
         }
     }
 }

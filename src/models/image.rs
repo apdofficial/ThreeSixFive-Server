@@ -8,11 +8,7 @@ use serde::{Serialize, Deserialize};
 use tokio::io::AsyncReadExt;
 use schemars::JsonSchema;
 
-#[derive(FromForm)]
-pub struct UploadImage<'v> {
-    pub title: String,
-    pub file: TempFile<'v>,
-}
+
 
 pub struct ImageFile {
     pub width: i32,
