@@ -19,6 +19,7 @@ fn rocket() -> _ {
         .attach(db::init())
         .attach(fairings::cors::CORS)
         .mount("/", routes![routes::images::post_image])
+        .mount("/", routes![routes::gifs::post_gif])
         .mount(
             "/",
             openapi_get_routes![
@@ -35,9 +36,11 @@ fn rocket() -> _ {
                 routes::recipes::delete_recipe,
                 routes::recipes::get_all_recipes,
 
-
                 routes::images::get_image,
                 routes::images::delete_image,
+
+                routes::gifs::get_gif,
+                routes::gifs::delete_gif
             ],
         )
         .mount(

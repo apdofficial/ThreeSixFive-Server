@@ -3,7 +3,7 @@ use rocket_okapi::okapi;
 use rocket_okapi::okapi::openapi3::{MediaType, Responses};
 use rocket_okapi::response::OpenApiResponderInner;
 use rocket_okapi::OpenApiError;
-use crate::routes::images::ImageResponse;
+use crate::routes::gifs::FileResponse;
 
 /// error type
 #[derive(Debug, serde::Serialize, schemars::JsonSchema)]
@@ -106,7 +106,7 @@ impl OpenApiResponderInner for MyError {
 }
 
 
-impl<'r> rocket::response::Responder<'r, 'static> for ImageResponse {
+impl<'r> rocket::response::Responder<'r, 'static> for FileResponse {
     fn respond_to(self, req: &'r rocket::Request<'_>) -> rocket::response::Result<'static> {
         let csp = "default-src 'self';";
         rocket::response::Response::build_from(self.0.respond_to(req)?)
@@ -115,7 +115,7 @@ impl<'r> rocket::response::Responder<'r, 'static> for ImageResponse {
     }
 }
 
-impl OpenApiResponderInner for ImageResponse {
+impl OpenApiResponderInner for FileResponse {
     fn responses(gen: &mut OpenApiGenerator) -> Result<Responses, OpenApiError> {
         use rocket_okapi::okapi::openapi3::RefOr;
         Ok(Responses {

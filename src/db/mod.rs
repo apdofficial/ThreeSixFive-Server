@@ -8,11 +8,13 @@ use mongodb::bson::oid::ObjectId;
 use crate::db::error::DbError;
 use crate::models::image::{Image, ImageDocument, ImageFile};
 use crate::models::recipe::{Recipe, RecipeDocument};
+use crate::models::gif::RecipeStepDocument;
 
 pub mod customer;
 pub mod recipe;
 pub mod error;
 pub mod image;
+pub mod gif;
 
 pub fn init() -> AdHoc {
     AdHoc::on_ignite("Connecting to MongoDB", |rocket| async {
@@ -35,6 +37,10 @@ async fn connect() -> mongodb::error::Result<Database> {
     println!("MongoDB Connected!");
 
     Ok(database)
+}
+
+fn get_recipe_steps_collection(db: & Database) -> Collection<RecipeStepDocument> {
+    db.collection::<RecipeStepDocument>("RecipeSteps")
 }
 
 fn get_recipes_collection(db: & Database) -> Collection<RecipeDocument> {

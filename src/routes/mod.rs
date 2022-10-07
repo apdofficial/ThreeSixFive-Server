@@ -6,6 +6,7 @@ use crate::models::response::MessageResponse;
 pub mod customer;
 pub mod recipes;
 pub mod images;
+pub mod gifs;
 
 /// This is a description. <br />You can do simple html <br /> like <b>this<b/>
 #[openapi(tag = "Hello World")]

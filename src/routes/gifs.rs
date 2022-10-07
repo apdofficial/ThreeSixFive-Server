@@ -5,6 +5,7 @@ use rocket::response::status::BadRequest;
 use rocket::serde::json::Json;
 use rocket_okapi::openapi;
 use std::path::PathBuf;
+use mongodb::bson::Bson::DateTime;
 use rocket::form::Form;
 use rocket::http::ContentType;
 use rocket::response::Responder;
@@ -14,51 +15,57 @@ use schemars::JsonSchema;
 
 use crate::models::response::MessageResponse;
 use crate::request_guards::basic::ApiKey;
-use crate::db::{parse_id, image, recipe};
+use crate::db::{parse_id, image, recipe, gif};
 use crate::db::error::DbError;
 use crate::errors::response::MyError;
 use crate::models::image::{Image, ImageFile};
 use crate::models::recipe::Recipe;
+use crate::models::gif::{Gif, RecipeStep};
+use crate::routes::gifs;
 
-use uuid::Uuid;
-use crate::routes::gifs::FileResponse;
+pub struct FileResponse(pub (ContentType, Vec<u8>));
+
 
 #[derive(FromForm)]
-pub struct ImageForm<'v> {
+pub struct GifForm<'v> {
     pub title: String,
+    pub description: String,
     pub file:TempFile<'v>,
 }
 
-
-#[post("/image/<id>",  data="<form>")]
-pub async fn post_image(
+#[post("/gif/<id>",  data="<form>")]
+pub async fn post_gif(
     db: &State<Database>,
     id: String,
-    mut form: Form<ImageForm<'_>>,
+    mut form: Form<GifForm<'_>>,
     _key: ApiKey,
-) -> Result<Json<Recipe>, MyError> {
+) -> Result<Json<RecipeStep>, MyError> {
     let id = parse_id(&id)
-            .map_err(|err|
-                MyError::build(
-                    Status::BadRequest.code,
-                    Some(err.details)
-                ))?;
-
+        .map_err(|err|
+            MyError::build(
+                Status::BadRequest.code,
+                Some(err.details)
+            ))?;
     match recipe::find_one_recipe(&db, id).await {
         Ok(Some(mut recipe)) => {
             let temp_path = std::env::temp_dir().join(form.title.as_str());
             form.file.persist_to(&temp_path).await.unwrap();
             let image_file = ImageFile::read(&temp_path).await;
-            let mut image = Image {
-                _id: "".to_string(),
+            let mut gif = Gif {
                 path: temp_path.to_str().unwrap().to_string(),
                 width: image_file.width,
                 height: image_file.height,
                 title: form.file.name().unwrap().parse().unwrap(),
+            };
+
+            let mut recipe_step = RecipeStep{
+                _id: "".to_string(),
+                description: form.description.clone(),
+                gif,
                 created_at: "".to_string()
             };
 
-            let image_id = image::insert_image(&db,image.clone())
+            let recipe_step_id = gif::insert_recipe_step(&db, recipe_step.clone())
                 .await
                 .map(|result| result.inserted_id.as_object_id())
                 .map_err(|_err| {
@@ -74,20 +81,20 @@ pub async fn post_image(
                     )
                 })?;
 
-            image._id = image_id.to_string();
+            recipe_step._id = recipe_step_id.to_string();
 
-            recipe.images.push(image.clone());
+            recipe.steps.push(recipe_step.clone());
 
             match recipe::update_recipe(&db, id, recipe).await {
                 Ok(Some(mut recipe)) => {
-                    recipe.images.push(image);
-                    Ok(Json(recipe))
+                    Ok(Json(recipe_step))
                 },
                 _ => Err(MyError::build(
                     Status::InternalServerError.code,
                     Some("Updating recipe with new image failed.".to_string())
                 )),
             }
+
         }
         _ => {
             Err(MyError::build(
@@ -98,9 +105,9 @@ pub async fn post_image(
     }
 }
 
-#[openapi(tag = "Image")]
-#[get("/image/<id>")]
-pub async fn get_image(
+#[openapi(tag = "GIF")]
+#[get("/gif/<id>")]
+pub async fn get_gif(
     db: &State<Database>,
     id: String,
     _key: ApiKey,
@@ -131,19 +138,22 @@ pub async fn get_image(
     }
 }
 
-#[openapi(tag = "Image")]
-#[delete("/image/<id>")]
-pub async fn delete_image(
+#[openapi(tag = "GIF")]
+#[delete("/gif/<id>")]
+pub async fn delete_gif(
     db: &State<Database>,
     id: String,
     _key: ApiKey,
 ) -> Result<Json<&str>, MyError> {
     let id =
-        parse_id(&id).map_err(|err| MyError::build(Status::BadRequest.code, Some(err.details)))?;
-    return match image::delete_one_image(&db, id).await {
+        parse_id(&id)
+            .map_err(|err|
+                MyError::build(Status::BadRequest.code, Some(err.details))
+            )?;
+    return match gif::delete_one_recipe_step(&db, id).await {
         Ok(res) => {
             if res.deleted_count == 1 {
-                Ok(Json("Image successfully deleted!"))
+                Ok(Json("GIF successfully deleted!"))
             } else {
                 Err(MyError::build(
                     Status::NotFound.code,
@@ -155,20 +165,8 @@ pub async fn delete_image(
             println!("{:?}", error);
             Err(MyError::build(
                 Status::BadRequest.code,
-                Some(format!("Image not found with _id {}", &id)),
+                Some(format!("GIF not found with _id {}", &id)),
             ))
         }
     };
-}
-
-#[openapi(tag = "Image")]
-#[get("/images")]
-pub async fn get_all_images(
-    db: &State<Database>,
-    _key: ApiKey,
-) -> Result<Json<Vec<Image>>, Status> {
-    match image::find_all_images(&db).await {
-        Ok(images) => Ok(Json(images)),
-        _ => Err(Status::InternalServerError),
-    }
 }

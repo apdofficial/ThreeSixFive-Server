@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 use strum_macros::EnumString;
 use crate::models::image::Image;
+use crate::models::gif::RecipeStep;
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -87,11 +88,6 @@ impl Recipe {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]
-pub struct RecipeStep {
-    pub description: String,
-    pub gif: String,
-}
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]
 pub struct Nutrition {
