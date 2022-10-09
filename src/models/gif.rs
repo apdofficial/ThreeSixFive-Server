@@ -3,6 +3,8 @@ use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
 use schemars::JsonSchema;
+use crate::models::{DocumentConvertable, ObjectConvertable};
+use crate::models::recipe::RecipeDocument;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RecipeStepDocument {
@@ -13,8 +15,8 @@ pub struct RecipeStepDocument {
     pub created_at: DateTime,
 }
 
-impl RecipeStepDocument{
-    pub(crate) fn to_object(&self) -> RecipeStep{
+impl ObjectConvertable<RecipeStep> for RecipeStepDocument {
+    fn to_object(&self) -> RecipeStep {
         RecipeStep{
             _id: self._id.clone().unwrap_or(ObjectId::new()).to_string(),
             description: "".to_string(),
@@ -37,8 +39,8 @@ pub struct RecipeStep {
     pub created_at: String,
 }
 
-impl RecipeStep {
-    pub(crate) fn to_document(&self) -> RecipeStepDocument{
+impl DocumentConvertable<RecipeStepDocument> for RecipeStep {
+    fn to_document(&self) -> RecipeStepDocument {
         RecipeStepDocument {
             _id: None,
             description: self.description.clone(),
@@ -52,6 +54,7 @@ impl RecipeStep {
         }
     }
 }
+
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]
 pub struct Gif {
