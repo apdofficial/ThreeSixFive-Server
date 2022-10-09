@@ -15,6 +15,7 @@ pub mod recipe;
 pub mod error;
 pub mod image;
 pub mod gif;
+pub mod crud;
 
 pub fn init() -> AdHoc {
     AdHoc::on_ignite("Connecting to MongoDB", |rocket| async {

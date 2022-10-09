@@ -7,7 +7,7 @@ use rocket::fs::TempFile;
 use serde::{Serialize, Deserialize};
 use tokio::io::AsyncReadExt;
 use schemars::JsonSchema;
-
+use crate::models::{DocumentConvertable, ObjectConvertable};
 
 
 pub struct ImageFile {
@@ -39,8 +39,8 @@ pub struct Image {
     pub created_at: String,
 }
 
-impl Image {
-    pub(crate) fn to_document(&self) -> ImageDocument{
+impl DocumentConvertable<ImageDocument> for Image{
+    fn to_document(&self) -> ImageDocument {
         ImageDocument{
             _id: None,
             path: self.path.clone(),
@@ -51,6 +51,7 @@ impl Image {
         }
     }
 }
+
 
 #[derive(Debug,Serialize, Deserialize, Clone)]
 pub struct ImageDocument {
@@ -63,8 +64,8 @@ pub struct ImageDocument {
     pub created_at: DateTime,
 }
 
-impl ImageDocument {
-    pub(crate) fn to_object(&self) -> Image{
+impl ObjectConvertable<Image> for ImageDocument {
+    fn to_object(&self) -> Image {
         Image{
             _id: self._id.clone().unwrap_or(ObjectId::new()).to_string(),
             path: self.path.clone(),

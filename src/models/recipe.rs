@@ -6,7 +6,7 @@ use strum_macros::Display;
 use strum_macros::EnumString;
 use crate::models::image::Image;
 use crate::models::gif::RecipeStep;
-
+use crate::models::{DocumentConvertable, ObjectConvertable};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RecipeDocument {
@@ -23,8 +23,8 @@ pub struct RecipeDocument {
     pub created_at: DateTime,
 }
 
-impl RecipeDocument {
-    pub(crate) fn to_object(&self) -> Recipe{
+impl ObjectConvertable<Recipe> for RecipeDocument{
+    fn to_object(&self) -> Recipe {
         Recipe{
             _id: self._id.clone().unwrap_or(ObjectId::new()).to_string(),
             name: self.name.clone(),
@@ -36,8 +36,6 @@ impl RecipeDocument {
                 carbs: self.nutrition.carbs,
                 fiber: self.nutrition.fiber,
                 protein: self.nutrition.protein,
-                sugars: self.nutrition.sugars,
-                sodium: self.nutrition.sodium
             },
             num_of_likes: self.num_of_likes,
             num_of_views: self.num_of_views,
@@ -47,6 +45,7 @@ impl RecipeDocument {
         }
     }
 }
+
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]
 pub struct Recipe {
@@ -62,9 +61,9 @@ pub struct Recipe {
     pub created_at: String,
 }
 
-impl Recipe {
 
-    pub(crate) fn to_document(&self) -> RecipeDocument{
+impl DocumentConvertable<RecipeDocument> for Recipe{
+    fn to_document(&self) -> RecipeDocument {
         RecipeDocument {
             _id: None,
             name: self.name.clone(),
@@ -76,8 +75,6 @@ impl Recipe {
                 carbs: self.nutrition.carbs,
                 fiber: self.nutrition.fiber,
                 protein: self.nutrition.protein,
-                sugars: self.nutrition.sugars,
-                sodium: self.nutrition.sodium
             },
             num_of_likes: self.num_of_likes,
             num_of_views: self.num_of_views,
@@ -88,7 +85,6 @@ impl Recipe {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]
 pub struct Nutrition {
     pub calories: i32,
@@ -96,19 +92,19 @@ pub struct Nutrition {
     pub carbs: i32,
     pub fiber: i32,
     pub protein: i32,
-    pub sugars: i32,
-    pub sodium: i32
 }
 
 #[derive(Debug, Display, PartialEq, EnumString, Serialize, Deserialize, JsonSchema, Clone)]
 #[allow(non_camel_case_types)]
 pub enum IngredientUnit{
     kg,
+    g,
     mg,
     l,
+    dcl,
     ml,
-    cup,
-    g
+    tsp,
+    tbsp
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, Clone)]

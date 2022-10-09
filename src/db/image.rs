@@ -1,61 +1,30 @@
 use futures::TryStreamExt;
 use crate::db::error::DbError;
-use crate::db::{create_filter, get_images_collection, get_recipes_collection};
+use crate::db::{create_filter, crud, get_images_collection, get_recipes_collection};
 use crate::models::image::Image;
 use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
 use mongodb::results::{DeleteResult, InsertOneResult};
 use mongodb::{Collection, Database};
+use crate::models::DocumentConvertable;
 use crate::models::recipe::Recipe;
 
 pub async fn insert_image(db: &Database, image: Image) -> Result<InsertOneResult, DbError> {
     let collection = get_images_collection(&db);
-    collection
-        .insert_one(image.to_document(), None)
-        .await
-        .map_err(|_err| DbError::new("Failed to insert_image.".to_string()))
+    crud::insert_one(collection, image.to_document()).await
 }
 
 pub async fn find_one_image(db: &Database, id: ObjectId) -> Result<Option<Image>, DbError> {
     let collection = get_images_collection(&db);
-    let filter = create_filter(&id)?;
-    collection
-        .find_one(filter, None)
-        .await
-        .map(|iamge_doc|
-            match iamge_doc {
-                Some(iamge_doc) => Some(iamge_doc.to_object()),
-                None => None
-            }
-        )
-        .map_err(|_err| DbError::new("Failed to find_one_image.".to_string()))
+    crud::find_one(collection, id).await
 }
 
 pub async fn find_all_images(db: &Database) -> Result<Vec<Image>, DbError> {
     let collection = get_images_collection(&db);
-    let cursor = collection
-        .find(None, None)
-        .await
-        .map_err(|_err| DbError::new("Failed to find_all_images.".to_string()))?;
-
-    let image_documents: Vec<_> = cursor.try_collect().await
-        .map_err(|_err|
-            DbError::new(format!("Failed to find_all_recipes:").to_string())
-        )?;
-
-    let images = image_documents
-        .into_iter()
-        .map(|doc| doc.to_object())
-        .collect();
-
-    Ok(images)
+    crud::find_all(collection).await
 }
 
 pub async fn delete_one_image(db: &Database, id: ObjectId) -> Result<DeleteResult, DbError> {
     let collection = get_images_collection(&db);
-    let filter = create_filter(&id)?;
-    collection
-        .delete_one(filter, None)
-        .await
-        .map_err(|_err| DbError::new("Failed to delete_one_image.".to_string()))
+    crud::delete_one(collection, id).await
 }
