@@ -1,14 +1,10 @@
 use crate::db::error::DbError;
-use crate::db::{create_filter, crud, get_recipe_steps_collection, get_recipes_collection};
-use crate::models::recipe::Recipe;
-use futures::TryStreamExt;
-use mongodb::bson::doc;
+use crate::db::{crud, get_recipe_steps_collection, get_recipes_collection};
+use crate::models::gif::RecipeStep;
+use crate::models::DocumentConvertable;
 use mongodb::bson::oid::ObjectId;
 use mongodb::results::{DeleteResult, InsertOneResult};
-use mongodb::{Collection, Database};
-use rocket::data::N;
-use crate::models::{DocumentConvertable, ObjectConvertable};
-use crate::models::gif::RecipeStep;
+use mongodb::Database;
 
 pub async fn insert_recipe_step(
     db: &Database,

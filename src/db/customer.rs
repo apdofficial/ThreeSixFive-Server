@@ -2,7 +2,6 @@ use crate::models::customer::Customer;
 use crate::models::customer::CustomerDocument;
 use crate::models::customer::CustomerInput;
 
-// use chrono::prelude::*;
 use futures::stream::TryStreamExt;
 use mongodb::bson::oid::ObjectId;
 use mongodb::bson::{doc, DateTime, Document};

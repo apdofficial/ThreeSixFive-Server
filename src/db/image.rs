@@ -1,13 +1,10 @@
-use futures::TryStreamExt;
 use crate::db::error::DbError;
-use crate::db::{create_filter, crud, get_images_collection, get_recipes_collection};
+use crate::db::{crud, get_images_collection, get_recipes_collection};
 use crate::models::image::Image;
-use mongodb::bson::doc;
+use crate::models::DocumentConvertable;
 use mongodb::bson::oid::ObjectId;
 use mongodb::results::{DeleteResult, InsertOneResult};
-use mongodb::{Collection, Database};
-use crate::models::DocumentConvertable;
-use crate::models::recipe::Recipe;
+use mongodb::Database;
 
 pub async fn insert_image(db: &Database, image: Image) -> Result<InsertOneResult, DbError> {
     let collection = get_images_collection(&db);

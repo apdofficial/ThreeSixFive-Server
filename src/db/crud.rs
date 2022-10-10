@@ -1,13 +1,10 @@
-use futures::{StreamExt, TryStream, TryStreamExt};
-use std::borrow::Borrow;
-use std::fmt::Error;
-use std::process::id;
+use crate::models::ObjectConvertable;
+use futures::{TryStream, TryStreamExt};
 use mongodb::results::InsertOneResult;
 use mongodb::{bson::oid::ObjectId, results::DeleteResult, Collection, Database};
-use rocket::http::ext::IntoCollection;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use crate::models::ObjectConvertable;
+use std::borrow::Borrow;
 
 use super::{create_filter, error::DbError, get_recipe_steps_collection};
 
@@ -43,7 +40,7 @@ trait DBStream: TryStream + TryStreamExt {}
 
 pub async fn find_all<T, U>(collection: Collection<T>) -> Result<Vec<U>, DbError>
 where
-    T: DeserializeOwned + Unpin + Send + Sync + ObjectConvertable<U>
+    T: DeserializeOwned + Unpin + Send + Sync + ObjectConvertable<U>,
 {
     let cursor = collection
         .find(None, None)

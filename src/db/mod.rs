@@ -1,21 +1,19 @@
-use mongodb::options::ClientOptions;
+use crate::db::error::DbError;
+use crate::models::gif::RecipeStepDocument;
+use crate::models::image::{Image, ImageDocument, ImageFile};
+use crate::models::recipe::{Recipe, RecipeDocument};
+use mongodb::bson::oid::ObjectId;
+use mongodb::bson::{doc, Document};
 use mongodb::{Client, Collection, Database};
 use rocket::fairing::AdHoc;
 use std::env;
-use dotenv::Error;
-use mongodb::bson::{doc, Document};
-use mongodb::bson::oid::ObjectId;
-use crate::db::error::DbError;
-use crate::models::image::{Image, ImageDocument, ImageFile};
-use crate::models::recipe::{Recipe, RecipeDocument};
-use crate::models::gif::RecipeStepDocument;
 
-pub mod customer;
-pub mod recipe;
-pub mod error;
-pub mod image;
-pub mod gif;
 pub mod crud;
+pub mod customer;
+pub mod error;
+pub mod gif;
+pub mod image;
+pub mod recipe;
 
 pub fn init() -> AdHoc {
     AdHoc::on_ignite("Connecting to MongoDB", |rocket| async {
@@ -40,31 +38,32 @@ async fn connect() -> mongodb::error::Result<Database> {
     Ok(database)
 }
 
-fn get_recipe_steps_collection(db: & Database) -> Collection<RecipeStepDocument> {
+fn get_recipe_steps_collection(db: &Database) -> Collection<RecipeStepDocument> {
     db.collection::<RecipeStepDocument>("RecipeSteps")
 }
 
-fn get_recipes_collection(db: & Database) -> Collection<RecipeDocument> {
+fn get_recipes_collection(db: &Database) -> Collection<RecipeDocument> {
     db.collection::<RecipeDocument>("Recipes")
 }
 
-fn get_images_collection(db: & Database) -> Collection<ImageDocument> {
+fn get_images_collection(db: &Database) -> Collection<ImageDocument> {
     db.collection::<ImageDocument>("Images")
 }
 
-fn create_filter(id: & ObjectId) -> Result<Document, DbError> {
+fn create_filter(id: &ObjectId) -> Result<Document, DbError> {
     Ok(doc! { "_id": id })
 }
 
-pub fn parse_id(id: &String) -> Result<ObjectId, DbError>{
+pub fn parse_id(id: &String) -> Result<ObjectId, DbError> {
     if id.is_empty() {
-        return Err(DbError::new(format!("failed to parse {} as an ObjectId.", id)))
+        return Err(DbError::new(format!(
+            "failed to parse {} as an ObjectId.",
+            id
+        )));
     };
 
     match ObjectId::parse_str(id) {
         Ok(id) => Ok(id),
-        Err(error) => Err(DbError::new(error.to_string()))
+        Err(error) => Err(DbError::new(error.to_string())),
     }
 }
-
-

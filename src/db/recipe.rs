@@ -1,16 +1,12 @@
+use crate::db;
 use crate::db::error::DbError;
-use crate::db::{create_filter, get_recipes_collection};
-use crate::models::recipe::{Recipe, RecipeDocument};
-use futures::TryStreamExt;
-use mongodb::bson::doc;
+use crate::db::get_recipes_collection;
+use crate::models::recipe::Recipe;
+use crate::models::DocumentConvertable;
+use db::crud;
 use mongodb::bson::oid::ObjectId;
 use mongodb::results::{DeleteResult, InsertOneResult};
-use mongodb::{Collection, Database};
-use mongodb::bson::Bson::Document;
-use rocket::data::N;
-use db::crud;
-use crate::db;
-use crate::models::DocumentConvertable;
+use mongodb::Database;
 
 pub async fn insert_recipe(db: &Database, recipe: Recipe) -> Result<InsertOneResult, DbError> {
     let collection = get_recipes_collection(&db);
